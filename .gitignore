@@ -1,0 +1,33 @@
+# Segredos / variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Build / cache
+dist/
+build/
+.next/
+.turbo/
+.cache/
+.vercel/
+coverage/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Sistema / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Claude Code (config local)
+.claude/settings.local.json

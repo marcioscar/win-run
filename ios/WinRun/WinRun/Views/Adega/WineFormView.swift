@@ -29,6 +29,10 @@ struct WineFormView: View {
     @State private var ratings: String
     @State private var about: String
     @State private var sources: [String]
+    @State private var priceBRL: Double?
+    @State private var priceSummary: String
+    @State private var reviews: [ExpertReview]
+    @State private var researchedAt: Date?
 
     @State private var photoItem: PhotosPickerItem?
     @State private var showingCamera = false
@@ -59,6 +63,10 @@ struct WineFormView: View {
         _ratings = State(initialValue: wine?.ratings ?? "")
         _about = State(initialValue: wine?.about ?? "")
         _sources = State(initialValue: wine?.sources ?? [])
+        _priceBRL = State(initialValue: wine?.priceBRL)
+        _priceSummary = State(initialValue: wine?.priceSummary ?? "")
+        _reviews = State(initialValue: wine?.reviews ?? [])
+        _researchedAt = State(initialValue: wine?.researchedAt)
     }
 
     private var canSave: Bool {
@@ -112,6 +120,7 @@ struct WineFormView: View {
                     TextField("Temperatura de serviço", text: $servingTemp)
                     TextField("Potencial de guarda", text: $cellaring)
                     TextField("Pontuações", text: $ratings, axis: .vertical)
+                    TextField("Preço (lojas e faixa)", text: $priceSummary, axis: .vertical)
                     TextField("Notas de degustação", text: $tastingNotes, axis: .vertical)
                         .lineLimit(2...8)
                     TextField("Harmonização", text: $pairing, axis: .vertical)
@@ -224,7 +233,7 @@ struct WineFormView: View {
                 .disabled(lendoRotulo)
 
                 if lendoRotulo {
-                    Text("A IA está buscando produtor, notas, harmonização e pontuações na internet. Leva uns 30 segundos.")
+                    Text("A IA está buscando produtor, notas, harmonização, preços e avaliações de especialistas na internet. Leva de 30 segundos a 1 minuto.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -280,6 +289,11 @@ struct WineFormView: View {
         preencher(&about, r.sobre)
         if !r.fontes.isEmpty { sources = r.fontes }
         if let tipo = WineType(rawValue: r.tipo) { wineType = tipo }
+        // preço e avaliações mudam com o tempo: sempre ficam com a pesquisa mais recente
+        priceBRL = r.precoMedioBRL
+        if let resumo = r.precoResumo { priceSummary = resumo }
+        if !r.reviews.isEmpty { reviews = r.reviews }
+        researchedAt = .now
     }
 
     private func save() {
@@ -311,6 +325,10 @@ struct WineFormView: View {
         target.ratings = trim(ratings)
         target.about = trim(about)
         target.sources = sources
+        target.priceBRL = priceBRL
+        target.priceSummary = trim(priceSummary)
+        target.reviews = reviews
+        target.researchedAt = researchedAt
         dismiss()
     }
 }

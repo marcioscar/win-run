@@ -11,6 +11,8 @@ struct WineDetailView: View {
     @State private var openBottleOnTasting = false
     @State private var editingTasting: Tasting?
     @State private var confirmingDelete = false
+    @State private var atualizando = false
+    @State private var erroAtualizar: String?
 
     private var sortedTastings: [Tasting] {
         wine.tastings.sorted { $0.date > $1.date }
@@ -39,6 +41,8 @@ struct WineDetailView: View {
                 }
                 .disabled(wine.bottles == 0)
             }
+
+            precoEAvaliacoes
 
             if hasDetails {
                 Section("Detalhes") {
@@ -150,6 +154,95 @@ struct WineDetailView: View {
     private var hasDetails: Bool {
         ![wine.grape, wine.country, wine.region, wine.notes,
           wine.classification, wine.alcohol, wine.servingTemp, wine.cellaring].allSatisfy(\.isEmpty)
+    }
+
+    // MARK: - Preço e avaliações
+
+    private var precoEAvaliacoes: some View {
+        Section {
+            if let preco = wine.priceBRL {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Preço médio no Brasil")
+                    Spacer()
+                    Text("≈ \(Fmt.price(preco))")
+                        .font(.title3.weight(.semibold).monospacedDigit())
+                }
+            }
+            if !wine.priceSummary.isEmpty {
+                Text(wine.priceSummary)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
+            ForEach(wine.reviews, id: \.self) { review in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(review.critic)
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        if !review.score.isEmpty {
+                            Text(review.score)
+                                .font(.subheadline.weight(.bold).monospacedDigit())
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.yellow.opacity(0.18), in: Capsule())
+                                .foregroundStyle(.yellow)
+                        }
+                    }
+                    if !review.comment.isEmpty {
+                        Text(review.comment)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+
+            Button {
+                Task { await atualizarPesquisa() }
+            } label: {
+                HStack {
+                    if atualizando {
+                        ProgressView()
+                        Text("Pesquisando preços e avaliações…")
+                    } else {
+                        Label(wine.researchedAt == nil ? "Pesquisar preços e avaliações" : "Atualizar preços e avaliações",
+                              systemImage: "sparkles")
+                    }
+                }
+            }
+            .disabled(atualizando)
+
+            if atualizando {
+                Text("Leva de 30 segundos a 1 minuto.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if let erroAtualizar {
+                Text(erroAtualizar)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+        } header: {
+            Text("Preço e avaliações")
+        } footer: {
+            if let data = wine.researchedAt {
+                Text("Pesquisado em \(data.formatted(date: .abbreviated, time: .omitted)). Preços mudam; atualize antes de comprar.")
+            }
+        }
+    }
+
+    private func atualizarPesquisa() async {
+        guard !atualizando else { return }
+        atualizando = true
+        erroAtualizar = nil
+        defer { atualizando = false }
+        do {
+            let resultado = try await LeitorRotulo.pesquisar(nome: wine.name, produtor: wine.producer, safra: wine.vintage)
+            wine.aplicarPesquisa(resultado)
+        } catch {
+            erroAtualizar = error.localizedDescription
+        }
     }
 
     private var hasFicha: Bool {

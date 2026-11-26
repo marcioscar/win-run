@@ -18,6 +18,13 @@ enum WineType: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+/// Nota de um crítico ou publicação (ex.: "Wine Enthusiast", "93 pts", "comentário").
+nonisolated struct ExpertReview: Codable, Hashable, Sendable {
+    var critic: String
+    var score: String
+    var comment: String
+}
+
 @Model
 final class Wine {
     var name: String = ""
@@ -42,6 +49,12 @@ final class Wine {
     var ratings: String = ""
     var about: String = ""
     var sources: [String] = []
+
+    // Preço e avaliações (pesquisados pela IA; mudam com o tempo)
+    var priceBRL: Double?
+    var priceSummary: String = ""
+    var reviews: [ExpertReview] = []
+    var researchedAt: Date?
     var createdAt: Date = Date.now
 
     @Relationship(deleteRule: .cascade, inverse: \Tasting.wine)

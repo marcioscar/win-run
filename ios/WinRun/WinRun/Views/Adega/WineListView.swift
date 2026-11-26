@@ -9,6 +9,7 @@ struct WineListView: View {
     @State private var typeFilter: WineType?
     @State private var onlyInStock = false
     @State private var showingNew = false
+    @State private var showingAjustes = false
 
     private var filtered: [Wine] {
         wines.filter { wine in
@@ -54,6 +55,9 @@ struct WineListView: View {
             .searchable(text: $search, prompt: "Nome, produtor, uva, região")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
+                    Button("Ajustes", systemImage: "gearshape") { showingAjustes = true }
+                }
+                ToolbarItem(placement: .topBarLeading) {
                     filterMenu
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -62,6 +66,9 @@ struct WineListView: View {
             }
             .sheet(isPresented: $showingNew) {
                 WineFormView(wine: nil)
+            }
+            .sheet(isPresented: $showingAjustes) {
+                AjustesView()
             }
         }
     }

@@ -22,6 +22,10 @@ struct WineFormView: View {
     @State private var photoItem: PhotosPickerItem?
     @State private var showingCamera = false
 
+    @State private var lendoRotulo = false
+    @State private var erroRotulo: String?
+    @State private var rotuloPreenchido = false
+
     init(wine: Wine?) {
         self.wine = wine
         _name = State(initialValue: wine?.name ?? "")
@@ -102,6 +106,7 @@ struct WineFormView: View {
                     if let data = try? await item.loadTransferable(type: Data.self),
                        let image = UIImage(data: data) {
                         photo = image.jpegForStorage()
+                        lerRotuloAutomatico()
                     }
                     photoItem = nil
                 }
@@ -109,6 +114,7 @@ struct WineFormView: View {
             .fullScreenCover(isPresented: $showingCamera) {
                 CameraPicker { image in
                     photo = image.jpegForStorage()
+                    lerRotuloAutomatico()
                 }
                 .ignoresSafeArea()
             }
@@ -158,7 +164,66 @@ struct WineFormView: View {
             }
             .buttonStyle(.borderless)
             .font(.subheadline)
+
+            if photo != nil {
+                Button {
+                    Task { await lerRotulo() }
+                } label: {
+                    HStack {
+                        Spacer()
+                        if lendoRotulo {
+                            ProgressView()
+                            Text("Lendo o rótulo…")
+                        } else {
+                            Label(rotuloPreenchido ? "Ler de novo com IA" : "Preencher com IA", systemImage: "sparkles")
+                        }
+                        Spacer()
+                    }
+                }
+                .disabled(lendoRotulo)
+
+                if let erroRotulo {
+                    Text(erroRotulo)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
+            }
         }
+    }
+
+    /// Ao escolher a foto de um vinho novo, já tenta ler o rótulo (se o token estiver configurado).
+    private func lerRotuloAutomatico() {
+        guard wine == nil, Servidor.configurado else { return }
+        Task { await lerRotulo() }
+    }
+
+    private func lerRotulo() async {
+        guard let photo, !lendoRotulo else { return }
+        lendoRotulo = true
+        erroRotulo = nil
+        defer { lendoRotulo = false }
+        do {
+            let rotulo = try await LeitorRotulo.ler(jpeg: photo)
+            aplicar(rotulo)
+            rotuloPreenchido = true
+        } catch {
+            erroRotulo = error.localizedDescription
+        }
+    }
+
+    /// Preenche só os campos vazios — não apaga o que você já digitou.
+    private func aplicar(_ r: RotuloLido) {
+        func preencher(_ campo: inout String, _ valor: String) {
+            if campo.trimmingCharacters(in: .whitespaces).isEmpty { campo = valor }
+        }
+        preencher(&name, r.nome)
+        preencher(&producer, r.produtor)
+        if vintageText.isEmpty, let safra = r.safra { vintageText = String(safra) }
+        preencher(&grape, r.uva)
+        preencher(&country, r.pais)
+        preencher(&region, r.regiao)
+        preencher(&notes, r.observacoes)
+        if let tipo = WineType(rawValue: r.tipo) { wineType = tipo }
     }
 
     private func save() {

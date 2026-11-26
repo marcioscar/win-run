@@ -19,6 +19,17 @@ struct WineFormView: View {
     @State private var notes: String
     @State private var photo: Data?
 
+    @State private var classification: String
+    @State private var alcohol: String
+    @State private var aging: String
+    @State private var tastingNotes: String
+    @State private var pairing: String
+    @State private var servingTemp: String
+    @State private var cellaring: String
+    @State private var ratings: String
+    @State private var about: String
+    @State private var sources: [String]
+
     @State private var photoItem: PhotosPickerItem?
     @State private var showingCamera = false
 
@@ -38,6 +49,16 @@ struct WineFormView: View {
         _bottles = State(initialValue: wine?.bottles ?? 1)
         _notes = State(initialValue: wine?.notes ?? "")
         _photo = State(initialValue: wine?.photo)
+        _classification = State(initialValue: wine?.classification ?? "")
+        _alcohol = State(initialValue: wine?.alcohol ?? "")
+        _aging = State(initialValue: wine?.aging ?? "")
+        _tastingNotes = State(initialValue: wine?.tastingNotes ?? "")
+        _pairing = State(initialValue: wine?.pairing ?? "")
+        _servingTemp = State(initialValue: wine?.servingTemp ?? "")
+        _cellaring = State(initialValue: wine?.cellaring ?? "")
+        _ratings = State(initialValue: wine?.ratings ?? "")
+        _about = State(initialValue: wine?.about ?? "")
+        _sources = State(initialValue: wine?.sources ?? [])
     }
 
     private var canSave: Bool {
@@ -81,6 +102,26 @@ struct WineFormView: View {
                                 .monospacedDigit()
                                 .foregroundStyle(.secondary)
                         }
+                    }
+                }
+
+                Section {
+                    TextField("Classificação (ex.: Gran Reserva)", text: $classification)
+                    TextField("Teor alcoólico", text: $alcohol)
+                    TextField("Amadurecimento", text: $aging, axis: .vertical)
+                    TextField("Temperatura de serviço", text: $servingTemp)
+                    TextField("Potencial de guarda", text: $cellaring)
+                    TextField("Pontuações", text: $ratings, axis: .vertical)
+                    TextField("Notas de degustação", text: $tastingNotes, axis: .vertical)
+                        .lineLimit(2...8)
+                    TextField("Harmonização", text: $pairing, axis: .vertical)
+                    TextField("Sobre o produtor e o vinho", text: $about, axis: .vertical)
+                        .lineLimit(2...10)
+                } header: {
+                    Text("Ficha")
+                } footer: {
+                    if !sources.isEmpty {
+                        Text("Pesquisado em \(sources.count) fonte\(sources.count == 1 ? "" : "s") na web.")
                     }
                 }
 
@@ -173,7 +214,7 @@ struct WineFormView: View {
                         Spacer()
                         if lendoRotulo {
                             ProgressView()
-                            Text("Lendo o rótulo…")
+                            Text("Lendo e pesquisando o vinho…")
                         } else {
                             Label(rotuloPreenchido ? "Ler de novo com IA" : "Preencher com IA", systemImage: "sparkles")
                         }
@@ -181,6 +222,12 @@ struct WineFormView: View {
                     }
                 }
                 .disabled(lendoRotulo)
+
+                if lendoRotulo {
+                    Text("A IA está buscando produtor, notas, harmonização e pontuações na internet. Leva uns 30 segundos.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
 
                 if let erroRotulo {
                     Text(erroRotulo)
@@ -222,7 +269,16 @@ struct WineFormView: View {
         preencher(&grape, r.uva)
         preencher(&country, r.pais)
         preencher(&region, r.regiao)
-        preencher(&notes, r.observacoes)
+        preencher(&classification, r.classificacao)
+        preencher(&alcohol, r.teorAlcoolico)
+        preencher(&aging, r.amadurecimento)
+        preencher(&tastingNotes, r.notasDegustacao)
+        preencher(&pairing, r.harmonizacao)
+        preencher(&servingTemp, r.temperaturaServico)
+        preencher(&cellaring, r.potencialGuarda)
+        preencher(&ratings, r.pontuacoes)
+        preencher(&about, r.sobre)
+        if !r.fontes.isEmpty { sources = r.fontes }
         if let tipo = WineType(rawValue: r.tipo) { wineType = tipo }
     }
 
@@ -245,6 +301,16 @@ struct WineFormView: View {
         target.bottles = bottles
         target.notes = trim(notes)
         target.photo = photo
+        target.classification = trim(classification)
+        target.alcohol = trim(alcohol)
+        target.aging = trim(aging)
+        target.tastingNotes = trim(tastingNotes)
+        target.pairing = trim(pairing)
+        target.servingTemp = trim(servingTemp)
+        target.cellaring = trim(cellaring)
+        target.ratings = trim(ratings)
+        target.about = trim(about)
+        target.sources = sources
         dismiss()
     }
 }

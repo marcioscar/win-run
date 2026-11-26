@@ -30,6 +30,18 @@ final class Wine {
     var bottles: Int = 0
     var notes: String = ""
     @Attribute(.externalStorage) var photo: Data?
+
+    // Ficha (normalmente preenchida pela IA)
+    var classification: String = ""
+    var alcohol: String = ""
+    var aging: String = ""
+    var tastingNotes: String = ""
+    var pairing: String = ""
+    var servingTemp: String = ""
+    var cellaring: String = ""
+    var ratings: String = ""
+    var about: String = ""
+    var sources: [String] = []
     var createdAt: Date = Date.now
 
     @Relationship(deleteRule: .cascade, inverse: \Tasting.wine)

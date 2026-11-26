@@ -45,9 +45,42 @@ struct WineDetailView: View {
                     detailRow("Uva", wine.grape)
                     detailRow("País", wine.country)
                     detailRow("Região", wine.region)
+                    detailRow("Classificação", wine.classification)
+                    detailRow("Teor alcoólico", wine.alcohol)
+                    detailRow("Temperatura", wine.servingTemp)
+                    detailRow("Guarda", wine.cellaring)
                     if !wine.notes.isEmpty {
                         Text(wine.notes)
                             .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            if hasFicha {
+                Section("Ficha") {
+                    fichaBlock("Amadurecimento", "clock", wine.aging)
+                    fichaBlock("Notas de degustação", "nose", wine.tastingNotes)
+                    fichaBlock("Harmonização", "fork.knife", wine.pairing)
+                    fichaBlock("Pontuações", "rosette", wine.ratings)
+                }
+            }
+
+            if !wine.about.isEmpty {
+                Section("Sobre") {
+                    Text(wine.about)
+                        .font(.callout)
+                }
+            }
+
+            if !wine.sources.isEmpty {
+                Section("Fontes") {
+                    ForEach(wine.sources, id: \.self) { fonte in
+                        if let url = URL(string: fonte) {
+                            Link(destination: url) {
+                                Label(url.host() ?? fonte, systemImage: "link")
+                                    .lineLimit(1)
+                            }
+                        }
                     }
                 }
             }
@@ -115,7 +148,26 @@ struct WineDetailView: View {
     }
 
     private var hasDetails: Bool {
-        ![wine.grape, wine.country, wine.region, wine.notes].allSatisfy(\.isEmpty)
+        ![wine.grape, wine.country, wine.region, wine.notes,
+          wine.classification, wine.alcohol, wine.servingTemp, wine.cellaring].allSatisfy(\.isEmpty)
+    }
+
+    private var hasFicha: Bool {
+        ![wine.aging, wine.tastingNotes, wine.pairing, wine.ratings].allSatisfy(\.isEmpty)
+    }
+
+    @ViewBuilder
+    private func fichaBlock(_ title: String, _ icon: String, _ value: String) -> some View {
+        if !value.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Label(title, systemImage: icon)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tint)
+                Text(value)
+                    .font(.callout)
+            }
+            .padding(.vertical, 2)
+        }
     }
 
     @ViewBuilder

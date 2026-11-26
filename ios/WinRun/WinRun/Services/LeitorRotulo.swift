@@ -10,7 +10,16 @@ nonisolated struct RotuloLido: Decodable, Sendable {
     let uva: String
     let pais: String
     let regiao: String
-    let observacoes: String
+    let classificacao: String
+    let teorAlcoolico: String
+    let amadurecimento: String
+    let notasDegustacao: String
+    let harmonizacao: String
+    let temperaturaServico: String
+    let potencialGuarda: String
+    let pontuacoes: String
+    let sobre: String
+    let fontes: [String]
 }
 
 nonisolated enum LeitorRotuloErro: LocalizedError {
@@ -30,7 +39,7 @@ nonisolated enum LeitorRotuloErro: LocalizedError {
 }
 
 nonisolated enum LeitorRotulo {
-    /// Envia a foto (JPEG) para o backend, que pergunta ao Claude o que está escrito no rótulo.
+    /// Envia a foto (JPEG) para o backend: o Claude lê o rótulo e pesquisa o vinho na web (~30 s).
     static func ler(jpeg: Data) async throws -> RotuloLido {
         guard let token = Servidor.token, !token.isEmpty else { throw LeitorRotuloErro.semToken }
         guard let base = URL(string: Servidor.endereco),
@@ -38,13 +47,14 @@ nonisolated enum LeitorRotulo {
             throw LeitorRotuloErro.enderecoInvalido
         }
 
-        var request = URLRequest(url: url, timeoutInterval: 90)
+        var request = URLRequest(url: url, timeoutInterval: 150)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "imagem": jpeg.base64EncodedString(),
             "mediaType": "image/jpeg",
+            "pesquisar": true,
         ])
 
         let (dados, resposta) = try await URLSession.shared.data(for: request)

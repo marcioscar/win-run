@@ -31,3 +31,11 @@ pnpm-debug.log*
 
 # Claude Code (config local)
 .claude/settings.local.json
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+*.moved-aside
+build/

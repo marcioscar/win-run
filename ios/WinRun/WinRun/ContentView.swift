@@ -1,17 +1,21 @@
 import SwiftUI
-import Playgrounds
+import SwiftData
 
 struct ContentView: View {
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        TabView {
+            Tab("Adega", systemImage: "wineglass") {
+                WineListView()
+            }
+            Tab("Degustações", systemImage: "list.star") {
+                TastingListView()
+            }
+        }
     }
 }
 
 #Preview {
     ContentView()
-}
-
-#Playground {
-    _ = 1 + 2
+        .modelContainer(for: [Wine.self, Tasting.self], inMemory: true)
+        .preferredColorScheme(.dark)
 }

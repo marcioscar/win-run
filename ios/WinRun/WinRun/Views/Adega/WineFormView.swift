@@ -249,7 +249,7 @@ struct WineFormView: View {
 
     /// Ao escolher a foto de um vinho novo, já tenta ler o rótulo (se o token estiver configurado).
     private func lerRotuloAutomatico() {
-        guard wine == nil, Servidor.configurado else { return }
+        guard wine == nil, ChaveAnthropic.configurada else { return }
         Task { await lerRotulo() }
     }
 

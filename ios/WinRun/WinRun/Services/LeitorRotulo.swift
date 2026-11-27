@@ -82,7 +82,7 @@ nonisolated enum LeitorRotulo {
     private static let buscaWeb: [String: Any] = [
         "type": "web_search_20260209",
         "name": "web_search",
-        "max_uses": 4,
+        "max_uses": 8,
         "user_location": [
             "type": "approximate", "country": "BR", "region": "São Paulo",
             "city": "São Paulo", "timezone": "America/Sao_Paulo",
